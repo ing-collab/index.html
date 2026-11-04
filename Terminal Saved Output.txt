@@ -1,0 +1,130 @@
+Last login: Wed Nov  4 23:45:56 on ttys000
+
+The default interactive shell is now zsh.
+To update your account to use zsh, please run `chsh -s /bin/zsh`.
+For more details, please visit https://support.apple.com/kb/HT208050.
+MAC-Prof-Nurhidayati:~ mac$ cat << 'EOF' > ~/Desktop/ielts_app.html
+> <!DOCTYPE html>
+> <html lang="id">
+> <head>
+>     <meta charset="UTF-8">
+>     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+>     <title>IELTS Academic 30-Day Challenge (A1 to C2)</title>
+>     <script src="https://jsdelivr.net"></script>
+>     <style>
+>         :root { --primary: #2563eb; --success: #16a34a; --danger: #dc2626; --dark: #1e293b; --light: #f8fafc; }
+>         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--light); color: var(--dark); margin: 0; padding: 20px; }
+>         .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+>         header { text-align: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 25px; }
+>         .grid { display: grid; grid-template-columns: 1fr 2fr; gap: 25px; }
+>         @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+>         .sidebar-box { background: #f1f5f9; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+>         .day-badge { display: inline-block; padding: 5px 10px; border-radius: 20px; font-size: 0.85em; font-weight: bold; color: white; }
+>         .status-locked { background: #94a3b8; }
+>         .status-unlocked { background: var(--primary); }
+>         .status-passed { background: var(--success); }
+>         .day-list { max-height: 300px; overflow-y: auto; margin-top: 15px; }
+>         .day-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: white; margin-bottom: 5px; border-radius: 6px; border: 1px solid #e2e8f0; cursor: pointer; }
+>         .day-item.disabled { cursor: not-allowed; opacity: 0.6; }
+>         .quiz-header { display: flex; justify-content: space-between; align-items: center; background: var(--dark); color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+>         .timer { font-weight: bold; color: #f59e0b; font-size: 1.2em; }
+>         .question-box { border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+>         .options-container { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+>         .option-btn { padding: 12px; border: 2px solid #cbd5e1; border-radius: 6px; background: white; text-align: left; font-size: 1em; cursor: pointer; transition: all 0.2s; }
+>         .option-btn:hover:not(:disabled) { border-color: var(--primary); background: #eff6ff; }
+>         .option-btn.correct { background: #dcfce7; border-color: var(--success); color: #14532d; }
+>         .option-btn.wrong { background: #fee2e2; border-color: var(--danger); color: #7f1d1d; }
+>         .explanation-box { margin-top: 15px; padding: 15px; background: #f0fdf4; border-left: 4px solid var(--success); border-radius: 4px; display: none; }
+>         .explanation-box.wrong-ans { background: #fef2f2; border-left-color: var(--danger); }
+>         .result-screen { text-align: center; padding: 40px 20px; }
+>         .band-score { font-size: 3em; font-weight: bold; color: var(--primary); margin: 10px 0; }
+>         button.action-btn { background: var(--primary); color: white; border: none; padding: 12px 25px; font-size: 1em; border-radius: 6px; cursor: pointer; }
+>         button.action-btn:hover { opacity: 0.9; }
+>         .chart-container { margin-top: 30px; padding-top: 25px; border-top: 2px solid #e2e8f0; }
+>     </style>
+> </head>
+> <body>
+> <div class="container">
+>     <header>
+>         <h1>IELTS Academic 30-Day Progressive Simulator</h1>
+>         <p>Target: Level A1 &rarr; Level C2. Kelulusan minimal 70% per Hari.</p>
+>     </header>
+>     <div class="grid">
+>         <div>
+>             <div class="sidebar-box">
+>                 <h3>🔔 Pengingat Belajar Harian</h3>
+>                 <label for="reminder-time">Atur Jam Latihan:</label>
+>                 <input type="time" id="reminder-time" value="09:00">
+>                 <button onclick="setReminder()" style="margin-top: 10px; width: 100%; padding: 5px; cursor: pointer;">Aktifkan Alarm</button>
+>             </div>
+>             <div class="sidebar-box">
+>                 <h3>📅 Timeline & Progres</h3>
+>                 <div class="day-list" id="dayListContainer"></div>
+>             </div>
+>         </div>
+>         <div id="quizArea">
+>             <div class="result-screen" id="startScreen">
+>                 <h2>Selamat Datang di Tantangan Hari ke-<span id="currentDayTitle">1</span></h2>
+>                 <p>Level Kompetensi saat ini: <strong id="currentLevelTitle">A1 - Beginner</strong></p>
+>                 <button class="action-btn" onclick="startQuiz()">Mulai Tes Hari Ini</button>
+>             </div>
+>         </div>
+>     </div>
+>     <div class="chart-container">
+>         <h3>📈 Grafik Progres Ujian (30 Hari)</h3>
+>         <canvas id="progressChart" style="width:100%; height:250px;"></canvas>
+>     </div>
+> </div>
+> <script>
+>     const levelsInfo = { A1: "Beginner", A2: "Elementary", B1: "Intermediate", B2: "Upper-Intermediate", C1: "Advanced", C2: "Proficient" };
+>     const questionsDatabase = [
+>         { day: 1, level: "A1", text: "Teks: John lives in London. He studies Chemistry at the university.", question: "John is a student in London. (True / False / Not Given)", options: ["True", "False", "Not Given"], answer: 0, exp: "Teks menyatakan John berkuliah di London. Jadi pernyataan ini Benar (True)." },
+>         { day: 2, level: "A2", text: "Sentence: If it rains tomorrow, we _______ the outdoor academic orientation.", question: "Pilihlah grammar yang tepat:", options: ["will cancel", "canceled", "would cancel"], answer: 0, exp: "Ini merupakan Conditional Type 1 (If + Present Tense, Future Tense)." },
+>         { day: 3, level: "B1", text: "Teks: Renewable energy generation increased by 15% globally, though local grids faced stability crises.", question: "All local power grids operated smoothly. (True / False / Not Given)", options: ["True", "False", "Not Given"], answer: 1, exp: "Teks menyatakan grid lokal menghadapi krisis stabilitas, bertolak belakang dengan kata 'smoothly' (False)." },
+>         { day: 4, level: "B2", text: "Sentence: The researchers _______ the data for three months before they discovered the anomaly.", question: "Pilihlah bentuk past perfect continuous:", options: ["had been analyzing", "have analyzed", "were analyzing"], answer: 0, exp: "Aksi tersebut berlangsung dalam durasi tertentu di masa lampau sebelum aksi lain terjadi." }
+>     ];
+>     for(let d=5; d<=30; d++) {
+>         let lv = d <= 5 ? "A1" : d <= 10 ? "A2" : d <= 15 ? "B1" : d <= 20 ? "B2" : d <= 25 ? "C1" : "C2";
+>         questionsDatabase.push({
+>             day: d, level: lv, text: `[Academic ${lv} Reading Text] Global temperature metrics indicate an unprecedented shift in atmospheric composition.`, question: `Pernyataan: Climate parameters remained unchanged.`, options: ["True", "False", "Not Given"], answer: 1, exp: "Teks menyebutkan 'unprecedented shift' (perubahan), berarti bertolak belakang dengan 'remained unchanged' (False)."
+>         });
+>     }
+>     let currentActiveDay = 1; let scoreCorrect = 0; let timeRemaining = 45; let timerInterval = null; let userProgress = {}; let scoreHistory = {};
+>     for(let i=1; i<=30; i++) { userProgress[i] = (i === 1) ? 1 : 0; scoreHistory[i] = 0; }
+>     let progressChartInstance = null;
+>     function initApp() { renderDayList(); initChart(); updateStartScreen(); }
+>     function renderDayList() {
+>         const container = document.getElementById("dayListContainer"); container.innerHTML = "";
+>         for(let d=1; d<=30; d++) {
+>             let lv = questionsDatabase.find(q => q.day === d).level; let statusText = "Terkunci"; let badgeClass = "status-locked";
+>             if(userProgress[d] === 1) { statusText = "Terbuka"; badgeClass = "status-unlocked"; } else if(userProgress[d] === 2) { statusText = "Lulus"; badgeClass = "status-passed"; }
+>             let item = document.createElement("div"); item.className = `day-item ${userProgress[d] === 0 ? 'disabled' : ''}`;
+>             if(userProgress[d] > 0) item.onclick = () => selectDay(d);
+>             item.innerHTML = `<div><strong>Hari ${d}</strong> <small>(${lv})</small></div><span class="day-badge ${badgeClass}">${statusText}</span>`;
+>             container.appendChild(item);
+>         }
+>     }
+>     function selectDay(day) { if(userProgress[day] === 0) return; currentActiveDay = day; updateStartScreen(); }
+>     function updateStartScreen() {
+>         let qData = questionsDatabase.find(q => q.day === currentActiveDay);
+>         document.getElementById("quizArea").innerHTML = `
+>             <div class="result-screen">
+>                 <h2>Selamat Datang di Hari ke-${currentActiveDay}</h2>
+>                 <p>Level Kompetensi: <strong>${qData.level} - ${levelsInfo[qData.level]}</strong></p>
+>                 <button class="action-btn" onclick="startQuiz()">Mulai Tes Hari Ini</button>
+>             </div>
+>         `;
+>     }
+>     function startQuiz() { currentQuestionIndex = 0; scoreCorrect = 0; renderQuestion(); }
+>     function renderQuestion() {
+>         let qData = questionsDatabase.find(q => q.day === currentActiveDay); timeRemaining = 45;
+>         document.getElementById("quizArea").innerHTML = `
+>             <div class="quiz-header"><div>Hari ke-${currentActiveDay} | Level: <strong>${qData.level}</strong></div><div class="timer">⏰ <span id="timerCountown">45</span>s</div></div>
+>             <div class="question-box">
+>                 <p style="font-style: italic; background:#f8fafc; padding:10px; border-radius:4px;">${qData.text}</p>
+>                 <h4>${qData.question}</h4>
+>                 <div class="options-container">
+>                     ${qData.options.map((opt, index) => `<button class="option-btn" onclick="checkAnswer(${index}, ${qData.answer}, '${escapeHtml(qData.exp)}')">${opt}</button>`).join('')}
+>                 </div>
+>                 <div class="explanation-box" id="expBox"></div>
+> 
